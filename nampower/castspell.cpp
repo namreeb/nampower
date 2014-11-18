@@ -33,7 +33,6 @@ int CastSpellAtTarget(void *luaState)
 
     if (*targetGuid)
     {
-
         auto param = (DWORD)LuaToNumber(luaState, 1);
 
         std::vector<BYTE> packedGuid;

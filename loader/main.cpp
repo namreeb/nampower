@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         std::cout << NAME << " " << VERSION << " injector" << std::endl;
 
         std::wstring dll, program;
-        std::string exportFunc;
+        std::string exportFunc = "Load";
         bool enableConsole;
 
         boost::program_options::options_description desc("Allowed options");
