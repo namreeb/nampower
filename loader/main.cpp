@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
             if (vm.count("help"))
             {
                 std::cout << desc << std::endl;
-                return EXIT_FAILURE;
+                return EXIT_SUCCESS;
             }
 
             enableConsole = !!(vm.count("console"));
