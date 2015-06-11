@@ -27,44 +27,16 @@
     either expressed or implied, of the FreeBSD Project.
 */
 
-#include <memory>
+#pragma once
 
-#include <hadesmem/patcher.hpp>
-
-#include "misc.hpp"
-#include "offsets.hpp"
-
-double(__fastcall *LuaToNumber)(PVOID, unsigned int);
-
-void RegisterLuaFunction()
+enum Offsets : DWORD
 {
-    // note: there are many suitable locations for this trampoline in the 1.12.1 client.
-    // this offset is what you would change if you care to use a different one.
-    const DWORD trampolineAddress = Offsets::gTrampoline;
-    const hadesmem::Process process(::GetCurrentProcessId());
-
-    std::vector<BYTE> patch(5);
-
-    patch[0] = 0xE9;    // JMP
-
-    const DWORD castSpellLocation = hadesmem::detail::AliasCast<DWORD>(&CastSpellAtTarget);
-    const DWORD relativeJumpValue = castSpellLocation - trampolineAddress - 5;
-
-    memcpy(&patch[1], &relativeJumpValue, sizeof(DWORD));
-
-    // write JMP to wow's .text section so it can be registered with lua
-    auto trampoline = new hadesmem::PatchRaw(process, (PVOID)trampolineAddress, patch);
-    trampoline->Apply();
-
-    // register with lua
-    FrameScriptRegisterT frameScriptRegister = hadesmem::detail::AliasCast<decltype(frameScriptRegister)>(Offsets::FrameScript__Register);
-    frameScriptRegister("CastSpellAtTarget", trampolineAddress);
-}
-
-void LuaLoadScripts(hadesmem::PatchDetourBase *detour)
-{
-    LuaLoadScriptsT originalRegister = detour->GetTrampolineT<decltype(originalRegister)>();
-    (*originalRegister)();
-
-    RegisterLuaFunction();
-}
+    gTargetGuid                     = 0xB4E2D8,
+    gClientConnection               = 0xC28128,
+    gTrampoline                     = 0x7FDF52, // must have at least five bytes of alignment (INT3/0xCC) space and be between 0x401000 and 0x7FEDAC
+    ClientConnection__SendPacket    = 0x5379A0,
+    FrameScript__LoadWorldScripts   = 0x490250,
+    FrameScript__Register           = 0x704120,
+    GetPlayerGuid                   = 0x468550,
+    Lua__ToNumber                   = 0x6F3620,
+};
