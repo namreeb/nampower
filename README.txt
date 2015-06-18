@@ -3,6 +3,13 @@ nampower
 
 An auto stop-cast tool for World of Warcraft 1.12.1.5875 (for Windows)
 
+To cast a spell at your current target using this tool, create a macro of the format
+"/script CastSpellAtTarget(x)" where x is the numerical id of the spell you wish to cast.
+
+To cast a spell at your current mouseover target using this tool, create a macro of the
+format "/script CastSpellAtMouseover(x)" where x is the numerical id of the spell you
+wish to cast.
+
 Note that while this makes no malicious changes to the WoW client, it could easily be
 mistaken as malicious by the primitive anticheats in use on most vanilla private
 servers.  This program contains absolutely no protection against anticheat software.

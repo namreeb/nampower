@@ -32,8 +32,10 @@
 enum Offsets : DWORD
 {
     gTargetGuid                     = 0xB4E2D8,
+    gMouseoverGuid                  = 0xB4E2C8,
     gClientConnection               = 0xC28128,
-    gTrampoline                     = 0x7FDF52, // must have at least five bytes of alignment (INT3/0xCC) space and be between 0x401000 and 0x7FEDAC
+    gTrampoline1                    = 0x7FDF52, // must have at least five bytes of alignment (INT3/0xCC) space and be between 0x401000 and 0x7FEDAC
+    gTrampoline2                    = 0x7FA606,
     ClientConnection__SendPacket    = 0x5379A0,
     FrameScript__LoadWorldScripts   = 0x490250,
     FrameScript__Register           = 0x704120,

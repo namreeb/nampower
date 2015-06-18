@@ -37,7 +37,8 @@ using LuaLoadScriptsT = void(__cdecl *)();
 using FrameScriptRegisterT = void(__fastcall *)(const char *, DWORD);
 
 extern double(__fastcall *LuaToNumber)(PVOID, unsigned int);
-extern void RegisterLuaFunction();
+extern void RegisterLuaFunctions();
 extern void LuaLoadScripts(hadesmem::PatchDetourBase *);
 
-extern int CastSpellAtTarget(void *luaState);
+extern int CastSpellAtTarget(void *);
+extern int CastSpellAtMouseover(void *);

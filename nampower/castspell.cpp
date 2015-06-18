@@ -78,3 +78,28 @@ int CastSpellAtTarget(void *luaState)
 
     return 1;
 }
+
+int CastSpellAtMouseover(void *luaState)
+{
+    if (const unsigned __int64 mouseoverGuid = *(const unsigned __int64 *)Offsets::gMouseoverGuid)
+    {
+        auto param = (DWORD)LuaToNumber(luaState, 1);
+
+        std::vector<BYTE> packedGuid;
+        BuildPackedGuid(mouseoverGuid, packedGuid);
+
+        CDataStore packet(10 + packedGuid.size());
+
+        packet.Write((DWORD)0x12E);                         // CMSG_CAST_SPELL
+        packet.Write((DWORD)param);                         // spell id
+        packet.Write((WORD)0x02);                           // TARGET_FLAG_UNIT
+        packet.Write(&packedGuid[0], packedGuid.size());    // packed target guid
+
+        packet.Send();
+    }
+    //if mouseover guid is empty, use target instead
+    else
+        CastSpellAtTarget(luaState);
+
+    return 1;
+}

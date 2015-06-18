@@ -59,7 +59,7 @@ extern "C" HADESMEM_DETAIL_DLLEXPORT DWORD Load()
     unsigned __int64(__stdcall *getPlayerGuid)() = (decltype(getPlayerGuid))(Offsets::GetPlayerGuid);
 
     if ((*getPlayerGuid)())
-        RegisterLuaFunction();
+        RegisterLuaFunctions();
 
     return EXIT_SUCCESS;
 }

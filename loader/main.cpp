@@ -28,7 +28,7 @@
 */
 
 #define NAME    "nampower"
-#define VERSION "v1.1"
+#define VERSION "v1.2"
 
 #include <iostream>
 #include <vector>
