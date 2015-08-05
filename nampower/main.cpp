@@ -44,7 +44,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID);
 // our function and initialize the lua ToNumber pointer for later.
 // we also check to see if we are already in-game (in the case of injection
 // into a running process).  if we are, register the lua function immediately.
-extern "C" HADESMEM_DETAIL_DLLEXPORT DWORD Load()
+extern "C" __declspec(dllexport) DWORD Load()
 {
     const hadesmem::Process process(::GetCurrentProcessId());
     
