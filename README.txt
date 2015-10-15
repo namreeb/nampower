@@ -1,3 +1,5 @@
+Donate: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=FEXCYUUW2GCLG&lc=US&item_name=namreeb%2eorg&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
+
 nampower
 ========
 
@@ -30,5 +32,3 @@ to take the time to do it.  For reference, this is the thread where I posed the 
 http://forum.nostalrius.org/viewtopic.php?f=6&t=14117
 
 USE AT YOUR OWN RISK
-
-Donate: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=FEXCYUUW2GCLG&lc=US&item_name=namreeb%2eorg&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
