@@ -45,4 +45,7 @@ Kronos / Twinstar has said that while they do not support client modification, t
 will not specifically target this mod.  Refer to this thread:
 http://forum.twinstar.cz/showthread.php/97154-Planning-to-release-a-wow-mod-Will-it-get-people-banned
 
+Crestfall has said they have no issue with people using it unless it later is revealed to
+enable abuse.  Refer to this thread: http://forums.crestfall-gaming.com/index.php?/topic/1224-will-nampower-be-allowed/
+
 USE AT YOUR OWN RISK
