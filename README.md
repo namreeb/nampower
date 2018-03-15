@@ -1,4 +1,4 @@
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=FEXCYUUW2GCLG&lc=US&item_name=namreeb%2eorg&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QFWZUEMC5N3SW)
 
 nampower
 ========
@@ -38,8 +38,8 @@ Note that while this makes no malicious changes to the WoW client, it could easi
 mistaken as malicious by the primitive anticheats in use on most vanilla private
 servers.  This program contains absolutely no protection against anticheat software.
 
-Feenix / wow-one.com has said that they will not ban people for using it.  Refer to
-this thread: http://www.wow-one.com/forum/topic/88974-will-running-this-mod-get-people-banned/
+Having written the anticheat for Elysium and Light's Hope, I can say that they do not
+currently detect this, and are unlikely ever to do so.
 
 Kronos / Twinstar has said that while they do not support client modification, they
 will not specifically target this mod.  Refer to this thread:
