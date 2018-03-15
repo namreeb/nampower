@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017, namreeb (legal@namreeb.org)
+    Copyright (c) 2017-2018, namreeb (legal@namreeb.org)
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 */
 
 #define NAME    "nampower"
-#define VERSION "v1.2"
+#define VERSION "v2.0"
 
 #include <iostream>
 #include <vector>

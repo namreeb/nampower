@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017, namreeb (legal@namreeb.org)
+    Copyright (c) 2017-2018, namreeb (legal@namreeb.org)
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,16 @@
 
 #pragma once
 
-enum Offsets : DWORD
+#include <cstdint>
+
+enum class Offsets : std::uint32_t
 {
-    gTargetGuid                     = 0xB4E2D8,
-    gMouseoverGuid                  = 0xB4E2C8,
-    gClientConnection               = 0xC28128,
-    gTrampoline1                    = 0x7FDF52, // must have at least five bytes of alignment (INT3/0xCC) space and be between 0x401000 and 0x7FEDAC
-    gTrampoline2                    = 0x7FA606,
-    ClientConnection__SendPacket    = 0x5379A0,
-    FrameScript__LoadWorldScripts   = 0x490250,
-    FrameScript__Register           = 0x704120,
-    GetPlayerGuid                   = 0x468550,
-    Lua__ToNumber                   = 0x6F3620,
+    CastSpell = 0x6E4B60,
+    CancelCast = 0x6E4940,
+    CreateCastbar = 0x6E7A53,
+    CancelCastbar = 0x06E4A50,
+    GetCastingTimeIndex = 0x2D,
+    Language = 0xC0E080,
+    SignalEvent = 0x703F50,
+    SpellDb = 0xC0D788,
 };

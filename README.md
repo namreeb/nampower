@@ -1,3 +1,5 @@
+**Please consider donating if you use this tool.**
+
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QFWZUEMC5N3SW)
 
 nampower
@@ -22,20 +24,16 @@ Consider the following timeline, assuming a latency of 200ms.
           1400ms ago.
 		  
 In this scenario, a 1000ms spell takes 1400ms to cast.  This tool will work around that
-design flaw by bypassing the lock the client places on itself during a spell cast.
+design flaw by altering the client behavior to not wait for the server to acknowledge
+anything.
 
-To cast a spell at your current target using this tool, create a macro of the format
-"/script CastSpellAtTarget(x)" where x is the numerical id of the spell you wish to cast.
-
-To cast a spell at your current mouseover target using this tool, create a macro of the
-format "/script CastSpellAtMouseover(x)" where x is the numerical id of the spell you
-wish to cast.
+Previous versions of this tool required custom macros.  This version should "just work".
 
 To launch, run loader.exe -p c:\path\to\wow.exe (or just loader.exe with it inside the
 main wow folder)
 
 Note that while this makes no malicious changes to the WoW client, it could easily be
-mistaken as malicious by the primitive anticheats in use on most vanilla private
+mistaken as malicious by the primitive anticheats in use on some vanilla private
 servers.  This program contains absolutely no protection against anticheat software.
 
 Having written the anticheat for Elysium and Light's Hope, I can say that they do not
@@ -44,8 +42,5 @@ currently detect this, and are unlikely ever to do so.
 Kronos / Twinstar has said that while they do not support client modification, they
 will not specifically target this mod.  Refer to this thread:
 http://forum.twinstar.cz/showthread.php/97154-Planning-to-release-a-wow-mod-Will-it-get-people-banned
-
-Crestfall has said they have no issue with people using it unless it later is revealed to
-enable abuse.  Refer to this thread: http://forums.crestfall-gaming.com/index.php?/topic/1224-will-nampower-be-allowed/
 
 USE AT YOUR OWN RISK

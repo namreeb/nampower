@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017, namreeb (legal@namreeb.org)
+    Copyright (c) 2017-2018, namreeb (legal@namreeb.org)
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,122 @@
     either expressed or implied, of the FreeBSD Project.
 */
 
-#include <vector>
-#include <Windows.h>
-
-#include <boost/filesystem.hpp>
+#include "offsets.hpp"
+#include "game.hpp"
 
 #include <hadesmem/process.hpp>
 #include <hadesmem/patcher.hpp>
 
-#include "misc.hpp"
-#include "offsets.hpp"
+#include <Windows.h>
+
+#include <cstdint>
+#include <memory>
+
+#ifdef _DEBUG
+#include <sstream>
+#endif
 
 BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID);
 
-// here we hook the wow script load function so we know when to register
-// our function and initialize the lua ToNumber pointer for later.
-// we also check to see if we are already in-game (in the case of injection
-// into a running process).  if we are, register the lua function immediately.
+static DWORD gCooldown;
+
+#ifdef _DEBUG
+static DWORD gLastCast;
+#endif
+
+namespace
+{
+using CastSpellT = bool(__fastcall *)(void *, int, void *, std::uint64_t);
+
+bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, void *item, std::uint64_t guid)
+{
+    auto const currentTime = ::GetTickCount();
+
+    // is there a cooldown?
+    if (gCooldown)
+    {
+        // is it still active?
+        if (gCooldown > currentTime)
+            return false;
+
+        gCooldown = 0;
+    }
+
+    auto const castSpell = detour->GetTrampolineT<CastSpellT>();
+    auto ret = castSpell(unit, spellId, item, guid);
+
+    // haven't gotten spell result yet, but we should have?  local cancel...
+    if (!ret)
+    {
+        int(__fastcall *cancelCast)(bool, bool, int) = reinterpret_cast<decltype(cancelCast)>(Offsets::CancelCast);
+
+        cancelCast(false, false, 28);
+
+        // try again...
+        ret = castSpell(unit, spellId, item, guid);
+    }
+
+    if (ret)
+    {
+        constexpr std::uint32_t SPELLCAST_START = 337;
+        void(*signalEvent)(std::uint32_t, const char *, ...) = reinterpret_cast<decltype(signalEvent)>(Offsets::SignalEvent);
+
+        auto const castTime = game::GetCastTime(unit, spellId);
+        auto const spell = game::GetSpellInfo(spellId);
+
+        if (!!spell && castTime > 0 && !(spell->Attributes & game::SPELL_ATTR_RANGED))
+        {
+            gCooldown = currentTime + castTime;
+
+#ifdef _DEBUG
+            std::stringstream str;
+            str << "Casting " << game::GetSpellName(spellId) << " with cast time " << castTime << " at time " << currentTime;
+
+            if (gLastCast)
+                str << " elapsed: " << (currentTime - gLastCast);
+
+            str << std::endl;
+
+            ::OutputDebugStringA(str.str().c_str());
+
+            gLastCast = currentTime;
+#endif
+
+            signalEvent(SPELLCAST_START, "%s%d", game::GetSpellName(spellId), castTime);
+        }
+    }
+
+    return ret;
+}
+}
+
+std::unique_ptr<hadesmem::PatchDetour<CastSpellT>> gCastDetour;
+std::unique_ptr<hadesmem::PatchRaw> gCastbarPatch;
+std::unique_ptr<hadesmem::PatchRaw> gCastbarCancelPatch;
+
 extern "C" __declspec(dllexport) DWORD Load()
 {
+    gCooldown = 0;
+
+#ifdef _DEBUG
+    gLastCast = 0;
+#endif
+
     const hadesmem::Process process(::GetCurrentProcessId());
-    
-    auto const luaLoadScriptsOrig = hadesmem::detail::AliasCast<LuaLoadScriptsT>(Offsets::FrameScript__LoadWorldScripts);
 
-    auto registerHook = new hadesmem::PatchDetour<LuaLoadScriptsT>(process, luaLoadScriptsOrig, &LuaLoadScripts);
-    registerHook->Apply();
+    // activate spellbar and our own internal cooldown on a successful cast attempt (result from server not available yet)
+    auto const castSpellOrig = hadesmem::detail::AliasCast<CastSpellT>(Offsets::CastSpell);
+    gCastDetour = std::make_unique<hadesmem::PatchDetour<CastSpellT>>(process, castSpellOrig, &CastSpellHook);
+    gCastDetour->Apply();
 
-    LuaToNumber = hadesmem::detail::AliasCast<decltype(LuaToNumber)>(Offsets::Lua__ToNumber);
+    // prevent spellbar re-activation upon successful cast notification from server
+    const std::vector<std::uint8_t> patch(5, 0x90);
+    gCastbarPatch = std::make_unique<hadesmem::PatchRaw>(process, reinterpret_cast<void *>(Offsets::CreateCastbar), patch);
+    gCastbarPatch->Apply();
 
-    // are we in a game?
-    unsigned __int64(__stdcall *getPlayerGuid)() = (decltype(getPlayerGuid))(Offsets::GetPlayerGuid);
-
-    if ((*getPlayerGuid)())
-        RegisterLuaFunctions();
+    // prevent spell result from the last spell cancelling the cast bar for the next one
+    gCastbarCancelPatch = std::make_unique<hadesmem::PatchRaw>(process, reinterpret_cast<void *>(Offsets::CancelCastbar), patch);
+    gCastbarCancelPatch->Apply();
 
     return EXIT_SUCCESS;
 }
-
-// note: unloading of the dll is not currently supported
