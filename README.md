@@ -2,8 +2,7 @@
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QFWZUEMC5N3SW)
 
-nampower
-========
+# nampower
 
 An auto stop-cast tool for World of Warcraft 1.12.1.5875 (for Windows)
 
@@ -27,14 +26,27 @@ In this scenario, a 1000ms spell takes 1400ms to cast.  This tool will work arou
 design flaw by altering the client behavior to not wait for the server to acknowledge
 anything.
 
+## New In Version 2.0 ##
+
 Previous versions of this tool required custom macros.  This version should "just work".
 
-To launch, run loader.exe -p c:\path\to\wow.exe (or just loader.exe with it inside the
-main wow folder)
+## Using ##
 
-Note that while this makes no malicious changes to the WoW client, it could easily be
-mistaken as malicious by the primitive anticheats in use on some vanilla private
-servers.  This program contains absolutely no protection against anticheat software.
+If you use my launcher, known as [wowreeb](https://github.com/namreeb/wowreeb), you can add
+the following line to a `<Realm>` block to tell the launcher to include this tool:
+
+```xml
+    <DLL Path="c:\path\to\nampower.dll" Method="Load" />
+```
+
+To launch with the built-in launcher, run loader.exe -p c:\path\to\wow.exe (or just loader.exe
+with it inside the main wow folder)
+
+### Account Security ###
+
+While this makes no malicious changes to the WoW client, it could easily be mistaken
+as malicious by the primitive anticheats in use on some vanilla private servers.
+This program contains absolutely no protection against anticheat software.
 
 Having written the anticheat for Elysium and Light's Hope, I can say that they do not
 currently detect this, and are unlikely ever to do so.
