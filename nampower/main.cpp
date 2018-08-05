@@ -80,8 +80,14 @@ bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, v
         gCooldown = 0;
     }
 
+    auto const spell = game::GetSpellInfo(spellId);
+
     auto const castSpell = detour->GetTrampolineT<CastSpellT>();
     auto ret = castSpell(unit, spellId, item, guid);
+
+    // if this is a trade skill, do nothing further
+    if (spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_TRADE_SKILL)
+        return ret;
 
     // haven't gotten spell result yet, probably due to latency.  simulate a cancel to clear the cast bar
     if (!ret)
@@ -97,7 +103,6 @@ bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, v
     if (ret)
     {
         auto const castTime = game::GetCastTime(unit, spellId);
-        auto const spell = game::GetSpellInfo(spellId);
 
         if (!!spell && castTime > 0 && !(spell->Attributes & game::SPELL_ATTR_RANGED))
         {
