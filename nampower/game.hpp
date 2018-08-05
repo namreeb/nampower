@@ -583,4 +583,37 @@ enum Events : std::uint32_t
 std::uint32_t GetCastTime(void *unit, int spellId);
 const SpellRec *GetSpellInfo(int spellId);
 const char *GetSpellName(int spellId);
+std::uint64_t ClntObjMgrGetActivePlayer();
+
+class CDataStore
+{
+    private:
+        virtual void InternalInitialize(int a2, int a3, int a4);
+        virtual void InternalDestroy(unsigned __int8 **, unsigned int *, unsigned int *);
+        virtual int InternalFetchRead(int start, int count, void *buff, int base, int alloc);
+        virtual void InternalFetchWrite(unsigned int, int, unsigned __int8 **, unsigned int *, unsigned int *, int, int);
+        virtual void Destructor();
+        virtual int IsRead();
+        virtual void Reset();
+        virtual void Finalize();
+        virtual void GetBufferParams();
+        virtual void DetachBuffer();
+
+    public:
+        unsigned __int8 *m_buffer;
+        unsigned int m_base;
+        unsigned int m_alloc;
+        unsigned int m_size;
+        unsigned int m_read;
+
+        template <typename T>
+        T Get()
+        {
+            static_assert(std::is_pod<T>::value, "CDataStore::Get requires POD type");
+
+            T ret = *reinterpret_cast<T *>(m_buffer + m_read);
+            m_read += sizeof(T);
+            return ret;
+        }
+};
 }

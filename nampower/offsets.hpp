@@ -33,6 +33,7 @@
 
 enum class Offsets : std::uint32_t
 {
+    GetActivePlayer = 0x468550,
     CastSpell = 0x6E4B60,
     CancelSpell = 0x6E4940,
     CreateCastbar = 0x6E7A53,

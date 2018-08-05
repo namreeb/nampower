@@ -58,11 +58,12 @@ static bool gCancelFromClient;
 using CastSpellT = bool(__fastcall *)(void *, int, void *, std::uint64_t);
 using CancelSpellT = int(__fastcall *)(bool, bool, int);
 using SignalEventT = void(__fastcall *)(game::Events);
-using PacketHandlerT = int(__stdcall *)(int, void *);
+using PacketHandlerT = int(__stdcall *)(int, game::CDataStore *);
 
 std::unique_ptr<hadesmem::PatchDetour<CastSpellT>> gCastDetour;
 std::unique_ptr<hadesmem::PatchDetour<CancelSpellT>> gCancelSpellDetour;
 std::unique_ptr<hadesmem::PatchDetour<SignalEventT>> gSignalEventDetour;
+std::unique_ptr<hadesmem::PatchDetour<PacketHandlerT>> gSpellDelayedDetour;
 std::unique_ptr<hadesmem::PatchRaw> gCastbarPatch;
 
 bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, void *item, std::uint64_t guid)
@@ -173,6 +174,34 @@ void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
     auto const signalEvent = detour->GetTrampolineT<SignalEventT>();
     signalEvent(eventId);
 }
+
+int SpellDelayedHook(hadesmem::PatchDetourBase *detour, int opCode, game::CDataStore *packet)
+{
+    auto const spellDelayed = detour->GetTrampolineT<PacketHandlerT>();
+
+    auto const rpos = packet->m_read;
+
+    auto const guid = packet->Get<std::uint64_t>();
+    auto const delay = packet->Get<std::uint32_t>();
+
+    packet->m_read = rpos;
+
+    auto const activePlayer = game::ClntObjMgrGetActivePlayer();
+
+    if (guid == activePlayer)
+    {
+        auto const currentTime = ::GetTickCount();
+
+        // if we are casting a spell and it was delayed, update our own state so we do not allow a cast too soon
+        if (currentTime < gCooldown)
+        {
+            gCooldown += delay;
+            gLastCast += delay;
+        }
+    }
+
+    return spellDelayed(opCode, packet);
+}
 }
 
 extern "C" __declspec(dllexport) DWORD Load()
@@ -202,6 +231,11 @@ extern "C" __declspec(dllexport) DWORD Load()
     auto const signalEventOrig = hadesmem::detail::AliasCast<SignalEventT>(Offsets::SignalEvent);
     gSignalEventDetour = std::make_unique<hadesmem::PatchDetour<SignalEventT>>(process, signalEventOrig, &SignalEventHook);
     gSignalEventDetour->Apply();
+
+    // watch for pushback notifications from the server
+    auto const spellDelayedOrig = hadesmem::detail::AliasCast<PacketHandlerT>(Offsets::SpellDelayed);
+    gSpellDelayedDetour = std::make_unique<hadesmem::PatchDetour<PacketHandlerT>>(process, spellDelayedOrig, &SpellDelayedHook);
+    gSpellDelayedDetour->Apply();
 
     // prevent spellbar re-activation upon successful cast notification from server
     const std::vector<std::uint8_t> patch(5, 0x90);

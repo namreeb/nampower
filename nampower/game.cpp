@@ -30,6 +30,8 @@
 #include "game.hpp"
 #include "offsets.hpp"
 
+#include <hadesmem/detail/alias_cast.hpp>
+
 #include <cstdint>
 
 namespace game
@@ -62,5 +64,12 @@ const char *GetSpellName(int spellId)
     auto const language = *reinterpret_cast<std::uint32_t *>(Offsets::Language);
 
     return spell->SpellName[language];
+}
+
+std::uint64_t ClntObjMgrGetActivePlayer()
+{
+    std::uint64_t (_cdecl *getActivePlayer)() = hadesmem::detail::AliasCast<decltype(getActivePlayer)>(Offsets::GetActivePlayer);
+
+    return getActivePlayer();
 }
 }
