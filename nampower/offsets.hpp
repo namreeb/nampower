@@ -34,11 +34,12 @@
 enum class Offsets : std::uint32_t
 {
     CastSpell = 0x6E4B60,
-    CancelCast = 0x6E4940,
+    CancelSpell = 0x6E4940,
     CreateCastbar = 0x6E7A53,
-    CancelCastbar = 0x06E4A50,
+    SpellDelayed = 0x6E74F0,
+    SignalEvent = 0x703E50,
     GetCastingTimeIndex = 0x2D,
     Language = 0xC0E080,
-    SignalEvent = 0x703F50,
+    SignalEventParam = 0x703F50,
     SpellDb = 0xC0D788,
 };
