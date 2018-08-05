@@ -171,7 +171,6 @@ void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
 #endif
 
         // prevent the result of a previous cast from stopping the current castbar
-        // this will also suppress casts that we send to the server when damage causes pushback that we dont account for (XXX TODO !!!)
         if (!gCancelFromClient && (eventId == game::Events::SPELLCAST_STOP || eventId == game::Events::SPELLCAST_FAILED) && currentTime < gCooldown)
             return;
     }
