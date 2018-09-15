@@ -208,7 +208,9 @@ int SpellDelayedHook(hadesmem::PatchDetourBase *detour, int opCode, game::CDataS
         if (currentTime < gCooldown)
         {
             gCooldown += delay;
+#ifdef _DEBUG
             gLastCast += delay;
+#endif
         }
     }
 
