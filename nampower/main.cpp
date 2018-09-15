@@ -174,6 +174,7 @@ void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
 
         if (eventId == game::Events::SPELLCAST_STOP || eventId == game::Events::SPELLCAST_FAILED)
         {
+            // if the client is cancelling a cast, reset our own cooldown to allow another one
             if (gCancelFromClient)
                 gCooldown = 0;
             // prevent the result of a previous cast from stopping the current castbar
