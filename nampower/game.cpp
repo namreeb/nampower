@@ -36,6 +36,13 @@
 
 namespace game
 {
+void *GetObjectPtr(std::uint64_t guid)
+{
+    void *(__stdcall *getObjectPtr)(std::uint64_t) = hadesmem::detail::AliasCast<decltype(getObjectPtr)>(Offsets::GetObjectPtr);
+
+    return getObjectPtr(guid);
+}
+
 std::uint32_t GetCastTime(void *unit, int spellId)
 {
     auto const vmt = *reinterpret_cast<std::uint8_t **>(unit);
@@ -68,7 +75,7 @@ const char *GetSpellName(int spellId)
 
 std::uint64_t ClntObjMgrGetActivePlayer()
 {
-    std::uint64_t (_cdecl *getActivePlayer)() = hadesmem::detail::AliasCast<decltype(getActivePlayer)>(Offsets::GetActivePlayer);
+    auto const getActivePlayer = hadesmem::detail::AliasCast<decltype(&ClntObjMgrGetActivePlayer)>(Offsets::GetActivePlayer);
 
     return getActivePlayer();
 }

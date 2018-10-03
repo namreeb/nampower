@@ -54,17 +54,46 @@ static DWORD gLastCast;
 
 static bool gCancelling;
 static bool gCancelFromClient;
+static game::SpellFailedReason gCancelReason;
 
 using CastSpellT = bool(__fastcall *)(void *, int, void *, std::uint64_t);
-using CancelSpellT = int(__fastcall *)(bool, bool, int);
+using SendCastT = void(__fastcall *)(game::SpellCast *);
+using CancelSpellT = int(__fastcall *)(bool, bool, game::SpellFailedReason);
 using SignalEventT = void(__fastcall *)(game::Events);
 using PacketHandlerT = int(__stdcall *)(int, game::CDataStore *);
 
 std::unique_ptr<hadesmem::PatchDetour<CastSpellT>> gCastDetour;
+std::unique_ptr<hadesmem::PatchDetour<SendCastT>> gSendCastDetour;
 std::unique_ptr<hadesmem::PatchDetour<CancelSpellT>> gCancelSpellDetour;
 std::unique_ptr<hadesmem::PatchDetour<SignalEventT>> gSignalEventDetour;
 std::unique_ptr<hadesmem::PatchDetour<PacketHandlerT>> gSpellDelayedDetour;
 std::unique_ptr<hadesmem::PatchRaw> gCastbarPatch;
+
+void BeginCast(DWORD currentTime, std::uint32_t castTime, int spellId)
+{
+    gCooldown = currentTime + castTime;
+
+#ifdef _DEBUG
+    // don't bother building the string if nobody will see it
+    if (::IsDebuggerPresent())
+    {
+        std::stringstream str;
+        str << "Casting " << game::GetSpellName(spellId) << " with cast time " << castTime << " at time " << currentTime;
+
+        if (gLastCast)
+            str << " elapsed: " << (currentTime - gLastCast);
+
+        str << std::endl;
+
+        ::OutputDebugStringA(str.str().c_str());
+    }
+
+    gLastCast = currentTime;
+#endif
+
+    void(*signalEvent)(std::uint32_t, const char *, ...) = reinterpret_cast<decltype(signalEvent)>(Offsets::SignalEventParam);
+    signalEvent(game::Events::SPELLCAST_START, "%s%d", game::GetSpellName(spellId), castTime);
+}
 
 bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, void *item, std::uint64_t guid)
 {
@@ -85,61 +114,35 @@ bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, v
     auto const castSpell = detour->GetTrampolineT<CastSpellT>();
     auto ret = castSpell(unit, spellId, item, guid);
 
-    // if this is a trade skill or item enchant, do nothing further
-    if (spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_TRADE_SKILL ||
-        spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_ENCHANT_ITEM ||
-        spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY)
-        return ret;
-
     // haven't gotten spell result yet, probably due to latency.  simulate a cancel to clear the cast bar
     if (!ret)
     {
         auto const cancelSpell = reinterpret_cast<CancelSpellT>(Offsets::CancelSpell);
 
-        cancelSpell(false, false, 28);
+        cancelSpell(false, false, game::SpellFailedReason::SPELL_FAILED_ERROR);
 
         // try again...
         ret = castSpell(unit, spellId, item, guid);
     }
 
+    auto const cursorMode = *reinterpret_cast<int *>(Offsets::CursorMode);
+
     if (ret)
     {
         auto const castTime = game::GetCastTime(unit, spellId);
 
-        if (!!spell && castTime > 0 && !(spell->Attributes & game::SPELL_ATTR_RANGED))
-        {
-            gCooldown = currentTime + castTime;
-
-#ifdef _DEBUG
-            // don't bother building the string if nobody will see it
-            if (::IsDebuggerPresent())
-            {
-                std::stringstream str;
-                str << "Casting " << game::GetSpellName(spellId) << " with cast time " << castTime << " at time " << currentTime;
-
-                if (gLastCast)
-                    str << " elapsed: " << (currentTime - gLastCast);
-
-                str << std::endl;
-
-                ::OutputDebugStringA(str.str().c_str());
-            }
-
-            gLastCast = currentTime;
-#endif
-            
-            void(*signalEvent)(std::uint32_t, const char *, ...) = reinterpret_cast<decltype(signalEvent)>(Offsets::SignalEventParam);
-            signalEvent(game::Events::SPELLCAST_START, "%s%d", game::GetSpellName(spellId), castTime);
-        }
+        if (!!spell && castTime > 0 && !(spell->Attributes & game::SPELL_ATTR_RANGED) && cursorMode != 2)
+            BeginCast(currentTime, castTime, spellId);
     }
 
     return ret;
 }
 
-int CancelSpellHook(hadesmem::PatchDetourBase *detour, bool failed, bool notifyServer, int reason)
+int CancelSpellHook(hadesmem::PatchDetourBase *detour, bool failed, bool notifyServer, game::SpellFailedReason reason)
 {
     gCancelling = true;
     gCancelFromClient = notifyServer;
+    gCancelReason = reason;
 
     auto const cancelSpell = detour->GetTrampolineT<CancelSpellT>();
     auto const ret = cancelSpell(failed, notifyServer, reason);
@@ -147,6 +150,23 @@ int CancelSpellHook(hadesmem::PatchDetourBase *detour, bool failed, bool notifyS
     gCancelling = false;
 
     return ret;
+}
+
+void SendCastHook(hadesmem::PatchDetourBase *detour, game::SpellCast *cast)
+{
+    auto const cursorMode = *reinterpret_cast<int *>(Offsets::CursorMode);
+
+    // if we were waiting for a target, it means there is no cast bar yet.  make one \o/
+    if (cursorMode == 2)
+    {
+        auto const unit = game::GetObjectPtr(cast->caster);
+        auto const castTime = game::GetCastTime(unit, cast->spellId);
+
+        BeginCast(::GetTickCount(), castTime, cast->spellId);
+    }
+
+    auto const sendCast = detour->GetTrampolineT<SendCastT>();
+    sendCast(cast);
 }
 
 void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
@@ -174,8 +194,9 @@ void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
 
         if (eventId == game::Events::SPELLCAST_STOP || eventId == game::Events::SPELLCAST_FAILED)
         {
-            // if the client is cancelling a cast, reset our own cooldown to allow another one
-            if (gCancelFromClient)
+            // if the current cast is cancelled (from the client for any reason or immediately by the server), reset our own
+            // cooldown to allow another one.  this can come from the server for an instant cast (i.e. Presence of Mind)
+            if (gCancelFromClient || gCancelReason == game::SpellFailedReason::SPELL_FAILED_ERROR)
                 gCooldown = 0;
             // prevent the result of a previous cast from stopping the current castbar
             else if (currentTime < gCooldown)
@@ -240,6 +261,11 @@ extern "C" __declspec(dllexport) DWORD Load()
     auto const cancelSpellOrig = hadesmem::detail::AliasCast<CancelSpellT>(Offsets::CancelSpell);
     gCancelSpellDetour = std::make_unique<hadesmem::PatchDetour<CancelSpellT>>(process, cancelSpellOrig, &CancelSpellHook);
     gCancelSpellDetour->Apply();
+
+    // monitor for spell cast triggered after target (terrain, item, etc.) is selected
+    auto const sendCastOrig = hadesmem::detail::AliasCast<SendCastT>(Offsets::SendCast);
+    gSendCastDetour = std::make_unique<hadesmem::PatchDetour<SendCastT>>(process, sendCastOrig, &SendCastHook);
+    gSendCastDetour->Apply();
 
     // this hook will alter cast bar behavior based on events from the game
     auto const signalEventOrig = hadesmem::detail::AliasCast<SignalEventT>(Offsets::SignalEvent);
