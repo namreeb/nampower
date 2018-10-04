@@ -114,6 +114,12 @@ bool CastSpellHook(hadesmem::PatchDetourBase *detour, void *unit, int spellId, v
     auto const castSpell = detour->GetTrampolineT<CastSpellT>();
     auto ret = castSpell(unit, spellId, item, guid);
 
+    // if this is a trade skill or item enchant, do nothing further
+    if (spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_TRADE_SKILL ||
+        spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_ENCHANT_ITEM ||
+        spell->Effect[0] == game::SpellEffects::SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY)
+        return ret;
+
     // haven't gotten spell result yet, probably due to latency.  simulate a cancel to clear the cast bar
     if (!ret)
     {
@@ -196,10 +202,10 @@ void SignalEventHook(hadesmem::PatchDetourBase *detour, game::Events eventId)
         {
             // if the current cast is cancelled (from the client for any reason or immediately by the server), reset our own
             // cooldown to allow another one.  this can come from the server for an instant cast (i.e. Presence of Mind)
-            if (gCancelFromClient || gCancelReason == game::SpellFailedReason::SPELL_FAILED_ERROR)
+            if (gCancelFromClient)
                 gCooldown = 0;
             // prevent the result of a previous cast from stopping the current castbar
-            else if (currentTime < gCooldown)
+            else if (currentTime <= gCooldown)
                 return;
         }
     }
