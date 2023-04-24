@@ -25,6 +25,7 @@ jobs:
       run: |
         Invoke-WebRequest https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip -OutFile boost.zip
         Expand-Archive -Path boost.zip -DestinationPath .
+        cd boost_1_78_0
         .\bootstrap
         .\b2 --with-filesystem --with-program_options link=static threading=multi runtime-link=shared architecture=x86 address-model=32 stage
 
