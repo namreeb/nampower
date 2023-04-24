@@ -21,14 +21,15 @@ jobs:
         Invoke-WebRequest https://github.com/namreeb/hadesmem/releases/download/v1.7.0/hadesmem-v142-Release-Win32.zip -OutFile hadesmem.zip
         Expand-Archive -Path hadesmem.zip -DestinationPath .
 
-    - name: Download Boost
+    - name: Build Boost
       run: |
-        Invoke-WebRequest https://boostorg.jfrog.io/artifactory/main/release/1.73.0/source/boost_1_73_0.zip -OutFile boost.zip
+        Invoke-WebRequest https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip -OutFile boost.zip
         Expand-Archive -Path boost.zip -DestinationPath .
-        dir
+        .\bootstrap
+        .\b2 --with-filesystem --with-program_options link=static threading=multi runtime-link=shared architecture=x86 address-model=32 stage
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DBOOST_ROOT=boost_1_73_0 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/artifact
+      run: cmake -B ${{github.workspace}}/build -DBOOST_ROOT=boost_1_78_0 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/artifact
 
     - name: Build
       run: |
