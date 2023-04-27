@@ -37,9 +37,24 @@ jobs:
         cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
         cmake --install ${{github.workspace}}/build
 
+    - name: Setup Artifact
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: |
+        $artifact = "nampower-${{ github.ref_name }}"
+        mkdir $artifact
+        copy artifact\* $artifact\
+        Compress-Archive $artifact $artifact.zip
+
     - name: Publish artifact
       uses: actions/upload-artifact@v3
       with:	
-        name: dumpwow
-        path: ${{ github.workspace }}/artifact/**/*
+        name: nampower-${{ github.ref_name }}
+        path: ${{ github.workspace }}/nampower-${{ github.ref_name }}/*
 
+    - uses: softprops/action-gh-release@v1
+      name: Upload assets to release
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        draft: true
+        files: nampower-${{ github.ref_name }}.zip
+        fail_on_unmatched_files: true
