@@ -43,7 +43,7 @@ jobs:
         $artifact = "nampower-${{ github.ref_name }}"
         mkdir $artifact
         copy artifact\* $artifact\
-        Compress-Archive $artifact $artifact.zip
+        Compress-Archive $artifact ${{artifact}}.zip
 
     - name: Publish artifact
       uses: actions/upload-artifact@v3
