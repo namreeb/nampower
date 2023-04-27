@@ -30,7 +30,7 @@ jobs:
         .\b2 --with-filesystem --with-program_options link=static threading=multi runtime-link=shared architecture=x86 address-model=32 stage
 
     - name: Configure CMake
-      run: cmake -A Win32 -B ${{github.workspace}}/build -DBOOST_ROOT=boost_1_78_0 -DHADESMEM_ROOT=hadesmem-v142-Release-Win32 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/nampower
+      run: cmake -A Win32 -B ${{github.workspace}}/build -DBOOST_ROOT=boost_1_78_0 -DHADESMEM_ROOT=hadesmem-v142-Release-Win32 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/artifact
 
     - name: Build
       run: |
@@ -41,18 +41,17 @@ jobs:
       uses: actions/upload-artifact@v3
       with:	
         name: nampower-2.2
-        path: ${{ github.workspace }}/nampower/*
+        path: ${{ github.workspace }}/artifact/*
 
     - name: Setup release
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
         $ref_name = "2.2"
-        move nampower nampower-${ref_name}
+        move artifact nampower-${ref_name}
         Compress-Archive nampower-${ref_name} nampower-${ref_name}.zip
 
     - uses: softprops/action-gh-release@v1
       name: Upload assets to release
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         draft: true
         files: nampower-2.2.zip
