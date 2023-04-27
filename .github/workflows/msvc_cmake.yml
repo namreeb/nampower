@@ -40,7 +40,7 @@ jobs:
     - name: Publish artifact
       uses: actions/upload-artifact@v3
       with:	
-        name: nampower-${{ github.ref_name }}
+        name: nampower-2.2
         path: ${{ github.workspace }}/nampower/*
 
     - name: Setup release
