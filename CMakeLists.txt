@@ -56,7 +56,7 @@ if ("x_${HADESMEM_ROOT}" STREQUAL "x_")
         message(FATAL_ERROR "HADESMEM_ROOT not set.  ${PROJECT_NAME} requires hadesmem, available at https://github.com/namreeb/hadesmem")
     endif()
 else()
-    set(HADESMEM_LIB_DIR "${HADESMEM_ROOT}/build/vs/${HADESMEM_BUILD}/${HADESMEM_ARCH}")
+    set(HADESMEM_LIB_DIR "${HADESMEM_ROOT}/lib")
 endif()
 
 if (NOT EXISTS "${HADESMEM_ROOT}/include/memory/hadesmem")
