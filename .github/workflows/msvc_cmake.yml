@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download hadesmem release
       run: |
@@ -38,7 +38,7 @@ jobs:
         cmake --install ${{github.workspace}}/build
 
     - name: Publish artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:	
         name: dumpwow
         path: ${{ github.workspace }}/artifact/**/*
