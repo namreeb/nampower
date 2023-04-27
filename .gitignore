@@ -1,13 +1,5 @@
-/Debug
-/Release
-/loader/Debug
-/loader/Release
-/nampower/Debug
-/nampower/Release
 /.vs/*
-/loader/*.user
-/*.suo
-/nampower/*.user
-/nampower.VC.db
 /*.sdf
 /loader/*.aps
+/CMakeSettings.json
+/out
