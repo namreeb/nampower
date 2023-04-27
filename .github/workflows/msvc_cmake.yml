@@ -40,10 +40,9 @@ jobs:
     - name: Setup Artifact
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-        $artifact = "nampower-${{ github.ref_name }}"
-        mkdir $artifact
-        copy artifact\* $artifact\
-        Compress-Archive $artifact ${{artifact}}.zip
+        mkdir nampower-${{ github.ref_name }}
+        copy artifact\* nampower-${{ github.ref_name }}\
+        Compress-Archive nampower-${{ github.ref_name }} nampower-${{ github.ref_name }}.zip
 
     - name: Publish artifact
       uses: actions/upload-artifact@v3
